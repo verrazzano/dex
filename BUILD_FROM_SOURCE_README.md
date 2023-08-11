@@ -1,0 +1,20 @@
+# Build Instructions
+
+The base tag this release is branched from is https://github.com/dexidp/dex/tree/v2.37.0
+
+### Build and Push Image to a Container Registry
+
+In order to tag and push the docker image, define the following environment variables:
+
+```
+export DOCKER_IMAGE_NAME=<docker repository/docker namespace>
+export DOCKER_TAG=<image tag>
+export VZ_BASE_IMAGE=<base image>
+```
+
+Build and push the image to container registry:
+```
+ make docker-build
+ docker image tag ${DOCKER_IMAGE_NAME}/:${DOCKER_TAG}
+ docker image push ${DOCKER_IMAGE_NAME}/:${DOCKER_TAG}
+```

@@ -1,0 +1,36 @@
+ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb42
+FROM $BASE_IMAGE AS build_base
+
+WORKDIR /usr/local/src/dex
+RUN mkdir -p /var/dex
+RUN mkdir -p /etc/dex
+
+COPY config.docker.yaml /etc/dex/
+COPY out/go/bin/dex /usr/local/bin/dex
+COPY out/go/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
+COPY out/go/bin/gomplate /usr/local/bin/gomplate
+
+# Dex connectors, such as GitHub and Google logins require root certificates.
+# Proper installations should manage those certificates, but it's a bad user
+# experience when this doesn't work out of the box.
+#
+# See https://go.dev/src/crypto/x509/root_linux.go for Go root CA bundle locations.
+#COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+FROM $BASE_IMAGE AS final
+
+COPY --from=build_base --chown=1001:1001 /var/dex /var/dex
+COPY --from=build_base --chown=1001:1001 /etc/dex /etc/dex
+
+COPY --from=build_base  /usr/local/bin/dex /usr/local/bin/dex
+COPY --from=build_base  /usr/local/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
+
+RUN mkdir -p /srv/dex/web
+
+COPY --from=build_base /usr/local/bin/gomplate /usr/local/bin/gomplate
+
+USER 1001:1001
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
+CMD ["dex", "serve", "/etc/dex/config.docker.yaml"]
+
