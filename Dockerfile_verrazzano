@@ -11,13 +11,6 @@ COPY out/go/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY out/go/bin/gomplate /usr/local/bin/gomplate
 COPY THIRD_PARTY_LICENSES.txt LICENSE README.md SECURITY.md /licenses/
 
-# Dex connectors, such as GitHub and Google logins require root certificates.
-# Proper installations should manage those certificates, but it's a bad user
-# experience when this doesn't work out of the box.
-#
-# See https://go.dev/src/crypto/x509/root_linux.go for Go root CA bundle locations.
-#COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
 FROM $BASE_IMAGE AS final
 
 COPY --from=build_base --chown=1001:1001 /var/dex /var/dex
