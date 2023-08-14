@@ -51,6 +51,7 @@ release-binary: ## Build release binaries (used to build a final container image
 	@go build -o /go/bin/dex -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/dex
 	@go build -o /go/bin/docker-entrypoint -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/docker-entrypoint
 
+.PHONY: docker-build
 docker-build:  ## Build docker image
 	@rm -rf out/
 	@mkdir -p out/
