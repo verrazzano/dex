@@ -9,6 +9,7 @@ COPY config.docker.yaml /etc/dex/
 COPY out/go/bin/dex /usr/local/bin/dex
 COPY out/go/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY out/go/bin/gomplate /usr/local/bin/gomplate
+COPY THIRD_PARTY_LICENSES.txt LICENSE README.md SECURITY.md /licenses/
 
 # Dex connectors, such as GitHub and Google logins require root certificates.
 # Proper installations should manage those certificates, but it's a bad user
@@ -28,6 +29,7 @@ COPY --from=build_base  /usr/local/bin/docker-entrypoint /usr/local/bin/docker-e
 RUN mkdir -p /srv/dex/web
 
 COPY --from=build_base /usr/local/bin/gomplate /usr/local/bin/gomplate
+COPY --from=build_base /licenses /licenses
 
 USER 1001:1001
 
