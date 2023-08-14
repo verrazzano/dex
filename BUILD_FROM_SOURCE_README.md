@@ -15,6 +15,5 @@ export VZ_BASE_IMAGE=<base image>
 Build and push the image to container registry:
 ```
  make docker-build
- docker image tag ${DOCKER_IMAGE_NAME}/:${DOCKER_TAG}
  docker image push ${DOCKER_IMAGE_NAME}/:${DOCKER_TAG}
 ```
