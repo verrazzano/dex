@@ -1,31 +1,53 @@
 ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb42
-FROM $BASE_IMAGE AS build_base
+FROM $BASE_IMAGE AS builder
+
+RUN microdnf install -y wget
 
 WORKDIR /usr/local/src/dex
+
 RUN mkdir -p /var/dex
 RUN mkdir -p /etc/dex
 
 COPY config.docker.yaml /etc/dex/
+
+ARG TARGETOS
+ARG TARGETARCH
+ARG TARGETVARIANT
+
+ENV GOMPLATE_VERSION=v3.11.4
+
+RUN wget -O /usr/local/bin/gomplate \
+  "https://github.com/hairyhenderson/gomplate/releases/download/${GOMPLATE_VERSION}/gomplate_${TARGETOS:-linux}-${TARGETARCH:-amd64}${TARGETVARIANT}" \
+  && chmod +x /usr/local/bin/gomplate
+
 COPY out/go/bin/dex /usr/local/bin/dex
 COPY out/go/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY out/go/bin/gomplate /usr/local/bin/gomplate
+COPY web /usr/local/src/dex/web
+
 COPY THIRD_PARTY_LICENSES.txt LICENSE README.md SECURITY.md /licenses/
 
-FROM $BASE_IMAGE AS final
+FROM $BASE_IMAGE
 
-COPY --from=build_base --chown=1001:1001 /var/dex /var/dex
-COPY --from=build_base --chown=1001:1001 /etc/dex /etc/dex
+# Dex connectors, such as GitHub and Google logins require root certificates.
+# Proper installations should manage those certificates, but it's a bad user
+# experience when this doesn't work out of the box.
+#
+# See https://go.dev/src/crypto/x509/root_linux.go for Go root CA bundle locations.
+# COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+COPY --from=builder --chown=1001:1001 /var/dex /var/dex
+COPY --from=builder --chown=1001:1001 /etc/dex /etc/dex
 
-COPY --from=build_base  /usr/local/bin/dex /usr/local/bin/dex
-COPY --from=build_base  /usr/local/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
+# Copy module files for CVE scanning / dependency analysis.
+# COPY --from=builder /usr/local/src/dex/go.mod /usr/local/src/dex/go.sum /usr/local/src/dex/
+# COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/go.sum /usr/local/src/dex/api/v2/
 
-RUN mkdir -p /srv/dex/web
+COPY --from=builder /usr/local/bin/dex /usr/local/bin/dex
+COPY --from=builder /usr/local/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
+COPY --from=builder /usr/local/src/dex/web /srv/dex/web
 
-COPY --from=build_base /usr/local/bin/gomplate /usr/local/bin/gomplate
-COPY --from=build_base /licenses /licenses
-
+COPY --from=builder /usr/local/bin/gomplate /usr/local/bin/gomplate
 USER 1001:1001
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
 CMD ["dex", "serve", "/etc/dex/config.docker.yaml"]
-
