@@ -41,13 +41,6 @@ RUN wget -O /usr/local/bin/gomplate \
 
 FROM $BASE_IMAGE
 
-# Dex connectors, such as GitHub and Google logins require root certificates.
-# Proper installations should manage those certificates, but it's a bad user
-# experience when this doesn't work out of the box.
-#
-# See https://go.dev/src/crypto/x509/root_linux.go for Go root CA bundle locations.
-#COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-
 COPY --from=stager --chown=1001:1001 /var/dex /var/dex
 COPY --from=stager --chown=1001:1001 /etc/dex /etc/dex
 
