@@ -28,10 +28,6 @@ VZ_BASE_IMAGE ?= ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb4
 DOCKER_IMAGE_NAME ?= ${PROJ}-dev
 DOCKER_IMAGE_TAG ?= local-$(shell git rev-parse --short HEAD)
 
-TARGETOS ?= "linux"
-TARGETARCH ?= "amd64"
-TARGETVARIANT ?= "-slim"
-
 KIND_VERSION    = 0.17.0
 KIND_NODE_IMAGE = "kindest/node:v1.25.3@sha256:cd248d1438192f7814fbca8fede13cfe5b9918746dfa12583976158a834fd5c5"
 KIND_TMP_DIR    = "$(PWD)/bin/test/dex-kind-kubeconfig"
@@ -53,9 +49,6 @@ release-binary: ## Build release binaries (used to build a final container image
 docker-build: ## Build docker image
 	docker build --pull -f Dockerfile_verrazzano \
 		   --build-arg BASE_IMAGE="${VZ_BASE_IMAGE}" \
-		   --build-arg TARGETOS="${TARGETOS}" \
-		   --build-arg TARGETARCH="${TARGETARCH}" \
-		   --build-arg TARGETVARIANT="${TARGETVARIANT}" \
 		   -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .
 bin/dex:
 	@mkdir -p bin/

@@ -21,4 +21,5 @@ Build and push the image to container registry:
 Please note the following changes made to build Dex from source:
 - The Dex docker image is built using Dockerfile_verrazzano
 - The calls to cross-compilation helpers - xx, is removed in Dockerfile_verrazzano
--
+- The package built from cmd/docker-entrypoint is not included in the image, to remove the dependency on gomplate.
+  Instead of using templated config.docker.yaml, the image includes config.dev.yaml from the project root directory.
