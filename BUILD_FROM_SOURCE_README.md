@@ -20,6 +20,5 @@ Build and push the image to container registry:
 
 Please note the following changes made to build Dex from source:
 - The Dex docker image is built using Dockerfile_verrazzano
-- The Makefile target to build the Dex binary is removed from the Dockerfile, the target is invoked from the Jenkinsfile
 - The calls to cross-compilation helpers - xx, is removed in Dockerfile_verrazzano
-- The output directory to place the go binaries is changed from /go/bin to out/go/bin in Makefile target release-binary
+-

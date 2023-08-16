@@ -1,14 +1,29 @@
 ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb42
 FROM $BASE_IMAGE AS builder
 
-RUN microdnf install -y wget
+RUN microdnf install -y go-toolset make git && \
+    microdnf --enablerepo ol8_codeready_builder install glibc-static && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum/*
 
 WORKDIR /usr/local/src/dex
 
+ENV CGO_ENABLED=1
+
+COPY go.mod go.sum ./
+COPY api/v2/go.mod api/v2/go.sum ./api/v2/
+RUN go mod download
+
+COPY . .
+RUN make release-binary
+
+FROM $BASE_IMAGE AS stager
+
 RUN mkdir -p /var/dex
 RUN mkdir -p /etc/dex
-
 COPY config.docker.yaml /etc/dex/
+
+FROM $BASE_IMAGE AS gomplate
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -16,16 +31,13 @@ ARG TARGETVARIANT
 
 ENV GOMPLATE_VERSION=v3.11.4
 
+RUN microdnf install -y wget && \
+    microdnf clean all && \
+    rm -rf /var/cache/yum/*
+
 RUN wget -O /usr/local/bin/gomplate \
   "https://github.com/hairyhenderson/gomplate/releases/download/${GOMPLATE_VERSION}/gomplate_${TARGETOS:-linux}-${TARGETARCH:-amd64}${TARGETVARIANT}" \
   && chmod +x /usr/local/bin/gomplate
-
-COPY out/go/bin/dex /usr/local/bin/dex
-COPY out/go/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
-COPY out/go/bin/gomplate /usr/local/bin/gomplate
-COPY web /usr/local/src/dex/web
-
-COPY THIRD_PARTY_LICENSES.txt LICENSE README.md SECURITY.md /licenses/
 
 FROM $BASE_IMAGE
 
@@ -34,19 +46,21 @@ FROM $BASE_IMAGE
 # experience when this doesn't work out of the box.
 #
 # See https://go.dev/src/crypto/x509/root_linux.go for Go root CA bundle locations.
-# COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-COPY --from=builder --chown=1001:1001 /var/dex /var/dex
-COPY --from=builder --chown=1001:1001 /etc/dex /etc/dex
+#COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+
+COPY --from=stager --chown=1001:1001 /var/dex /var/dex
+COPY --from=stager --chown=1001:1001 /etc/dex /etc/dex
 
 # Copy module files for CVE scanning / dependency analysis.
-# COPY --from=builder /usr/local/src/dex/go.mod /usr/local/src/dex/go.sum /usr/local/src/dex/
-# COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/go.sum /usr/local/src/dex/api/v2/
+COPY --from=builder /usr/local/src/dex/go.mod /usr/local/src/dex/go.sum /usr/local/src/dex/
+COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/go.sum /usr/local/src/dex/api/v2/
 
-COPY --from=builder /usr/local/bin/dex /usr/local/bin/dex
-COPY --from=builder /usr/local/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
+COPY --from=builder /go/bin/dex /usr/local/bin/dex
+COPY --from=builder /go/bin/docker-entrypoint /usr/local/bin/docker-entrypoint
 COPY --from=builder /usr/local/src/dex/web /srv/dex/web
 
-COPY --from=builder /usr/local/bin/gomplate /usr/local/bin/gomplate
+COPY --from=gomplate /usr/local/bin/gomplate /usr/local/bin/gomplate
+
 USER 1001:1001
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint"]
