@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb42
+ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230811160107-63554aa
 FROM $BASE_IMAGE AS builder
 
 RUN microdnf install -y go-toolset make git && \
