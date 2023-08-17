@@ -23,6 +23,11 @@ PROTOC_VERSION             = 21.12
 PROTOC_GEN_GO_VERSION      = 1.28.1
 PROTOC_GEN_GO_GRPC_VERSION = 1.3.0
 
+VZ_BASE_IMAGE ?= ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb42
+
+DOCKER_IMAGE_NAME ?= ${PROJ}-dev
+DOCKER_IMAGE_TAG ?= local-$(shell git rev-parse --short HEAD)
+
 KIND_VERSION    = 0.17.0
 KIND_NODE_IMAGE = "kindest/node:v1.25.3@sha256:cd248d1438192f7814fbca8fede13cfe5b9918746dfa12583976158a834fd5c5"
 KIND_TMP_DIR    = "$(PWD)/bin/test/dex-kind-kubeconfig"
@@ -40,6 +45,11 @@ release-binary: ## Build release binaries (used to build a final container image
 	@go build -o /go/bin/dex -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/dex
 	@go build -o /go/bin/docker-entrypoint -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/docker-entrypoint
 
+.PHONY: docker-build
+docker-build: ## Build docker image
+	docker build --pull -f Dockerfile_verrazzano \
+		   --build-arg BASE_IMAGE="${VZ_BASE_IMAGE}" \
+		   -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .
 bin/dex:
 	@mkdir -p bin/
 	@go install -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/dex
