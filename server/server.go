@@ -478,6 +478,9 @@ func (db passwordDB) Refresh(ctx context.Context, s connector.Scopes, identity c
 }
 
 func (db passwordDB) Prompt() string {
+	if userNamePrompt := os.Getenv("PASSWORD_DB_USERNAME_PROMPT"); userNamePrompt != "" {
+		return userNamePrompt
+	}
 	return "Email Address"
 }
 
