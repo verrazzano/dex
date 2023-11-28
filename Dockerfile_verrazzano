@@ -1,8 +1,9 @@
-ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230811160107-63554aa
+ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20231128114138-bb2f5f5
 FROM $BASE_IMAGE AS builder
 
-RUN microdnf install -y go-toolset make git && \
-    microdnf --enablerepo ol8_codeready_builder install glibc-static && \
+RUN microdnf install -y make git && \
+    microdnf install -y --enablerepo ol8_appstream golang-1.20.10-1.module+el8.9.0+90068+08775a1f && \
+    microdnf install -y --enablerepo ol8_codeready_builder glibc-static && \
     microdnf clean all && \
     rm -rf /var/cache/yum/*
 
