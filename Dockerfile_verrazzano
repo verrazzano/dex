@@ -1,4 +1,5 @@
 ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230811160107-63554aa
+ARG FINAL_IMAGE=ghcr.io/verrazzano/ol8-static:v0.0.1-20231102152128-e7afc807
 FROM $BASE_IMAGE AS builder
 
 RUN microdnf install -y go-toolset make git && \
@@ -24,10 +25,15 @@ RUN mkdir -p /etc/dex
 
 COPY config.dev.yaml /etc/dex/
 
-FROM $BASE_IMAGE
+# Create a directory for sqlite3 path used in config.dev.yaml
+# This is used only when the image is run using docker run
+RUN mkdir -p /var/sqlite
+
+FROM $FINAL_IMAGE
 
 COPY --from=stager --chown=1001:1001 /var/dex /var/dex
 COPY --from=stager --chown=1001:1001 /etc/dex /etc/dex
+COPY --from=stager --chown=1001:1001 /var/sqlite /var/sqlite
 
 # Copy module files for CVE scanning / dependency analysis.
 COPY --from=builder /usr/local/src/dex/go.mod /usr/local/src/dex/go.sum /usr/local/src/dex/
@@ -35,11 +41,6 @@ COPY --from=builder /usr/local/src/dex/api/v2/go.mod /usr/local/src/dex/api/v2/g
 
 COPY --from=builder /go/bin/dex /usr/local/bin/dex
 COPY --from=builder /usr/local/src/dex/web /srv/dex/web
-
-# Create a directory for sqlite3 path used in config.dev.yaml
-# This is used only when the image is run using docker run
-RUN mkdir -p var/sqlite && \
-    chown -R 1001:1001 var/sqlite
 
 USER 1001:1001
 
