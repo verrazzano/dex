@@ -1273,7 +1273,9 @@ Copyright 2017 The Go Authors. All rights reserved.
 Copyright 2018 The Go Authors. All rights reserved.
 Copyright 2019 The Go Authors. All rights reserved.
 Copyright 2020 The Go Authors. All rights reserved.
+Copyright 2021 The Go Authors. All rights reserved.
 Copyright 2022 The Go Authors. All rights reserved.
+Copyright 2023 The Go Authors. All rights reserved.
 
 == Patents
 Additional IP Rights Grant (Patents)
@@ -2358,6 +2360,3 @@ This Source Code Form is "Incompatible With Secondary Licenses", as defined by
 the Mozilla Public License, v. 2.0.
 
 
-=== ATTRIBUTION-HELPER-GENERATED:
-=== Attribution helper version: {Major:0 Minor:11 GitVersion:0.10.0-110-gd8300771 GitCommit:d8300771fadb50f0559a6f0dcf4c61ee69c63412 GitTreeState:clean BuildDate:2023-11-28T11:13:51Z GoVersion:go1.19.1 Compiler:gc Platform:linux/amd64}
-=== License file based on go.mod with md5 sum:  e599ae17eeef0e4a9df2318f10d982a6
