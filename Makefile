@@ -50,7 +50,7 @@ release-binary: ## Build release binaries (used to build a final container image
 docker-build: ## Build docker image
 	docker build --pull -f Dockerfile_verrazzano \
 		   --build-arg BASE_IMAGE="${VZ_BASE_IMAGE}" \
-                   --build-arg GO_LANG_IMAGE="${GO_LANG_IMAGE}" \
+		   --build-arg GO_LANG_IMAGE="${GO_LANG_IMAGE}" \
 		   -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .
 bin/dex:
 	@mkdir -p bin/
