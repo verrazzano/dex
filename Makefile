@@ -24,6 +24,7 @@ PROTOC_GEN_GO_VERSION      = 1.28.1
 PROTOC_GEN_GO_GRPC_VERSION = 1.3.0
 
 VZ_BASE_IMAGE ?= ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230727050514-6b5fb42
+GO_LANG_IMAGE ?= ghcr.io/verrazzano/golang:v1.20.12
 
 DOCKER_IMAGE_NAME ?= ${PROJ}-dev
 DOCKER_IMAGE_TAG ?= local-$(shell git rev-parse --short HEAD)
@@ -49,6 +50,7 @@ release-binary: ## Build release binaries (used to build a final container image
 docker-build: ## Build docker image
 	docker build --pull -f Dockerfile_verrazzano \
 		   --build-arg BASE_IMAGE="${VZ_BASE_IMAGE}" \
+                   --build-arg GO_LANG_IMAGE="${GO_LANG_IMAGE}" \
 		   -t ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} .
 bin/dex:
 	@mkdir -p bin/
