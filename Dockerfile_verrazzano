@@ -1,11 +1,15 @@
 ARG BASE_IMAGE=ghcr.io/verrazzano/verrazzano-base:v1.0.0-20230811160107-63554aa
 ARG FINAL_IMAGE=ghcr.io/verrazzano/ol8-static:v0.0.1-20231102152128-e7afc807
-FROM $BASE_IMAGE AS builder
+ARG GO_LANG_IMAGE=ghcr.io/verrazzano/golang:v1.20.12
 
-RUN microdnf install -y go-toolset make git && \
-    microdnf --enablerepo ol8_codeready_builder install glibc-static && \
-    microdnf clean all && \
-    rm -rf /var/cache/yum/*
+FROM $GO_LANG_IMAGE AS builder
+
+RUN dnf config-manager --enable ol8_appstream && \
+    dnf install make git && \
+    dnf config-manager --enable ol8_codeready_builder && \
+    dnf install glibc-static && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 WORKDIR /usr/local/src/dex
 
